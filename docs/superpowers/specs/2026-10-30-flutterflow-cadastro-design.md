@@ -6,6 +6,7 @@ Data: 2026-10-30
 A Xtreme Caiaques precisa de um app fácil de usar no celular para cadastrar clientes e caiaques e registrar "o cliente X pegou o caiaque Y". O monitoramento em tempo real (mapa) continua como aplicação web, mas passa a mostrar nomes reais e o cliente do passeio em andamento, em vez de "Caiaque N".
 
 ## Objetivos
+- **Independência (requisito do usuário):** o rastreador (Render + Vercel, entrega ao cliente final) funciona sozinho, sem Firebase e sem login; o app FlutterFlow funciona sozinho, sem o rastreador. Se um cair, o outro segue. Juntos, o mapa enriquece os nomes.
 - App de cadastro no FlutterFlow (projeto existente `kayak-manager-zibit4`), dados no Firestore.
 - Fluxo de passeio: escolher cliente + caiaque disponível, iniciar; encerrar devolve o caiaque.
 - Monitoramento (Angular) lê nomes/cliente do Firestore (somente leitura), posição segue pelo WebSocket do backend.
@@ -22,6 +23,8 @@ A Xtreme Caiaques precisa de um app fácil de usar no celular para cadastrar cli
 - Dois lugares onde editar o mesmo cadastro.
 - Regras de segurança abertas que deixem qualquer pessoa gravar no Firestore.
 - Mapa que quebra quando o Firebase estiver fora do ar (deve cair para "Caiaque N").
+- O rastreador exigir login, conta Firebase ou configuração do Firebase para funcionar.
+- O app FlutterFlow depender do backend, do WebSocket ou do mapa.
 
 ## Restrições
 - Backend publicado no Render; o caminho `/api/v1/kayaks` hoje responde 404, então não depender dele.
@@ -47,7 +50,8 @@ Escolha do usuário: opção 1.
 - Monitoramento: para cada `id` recebido, busca o caiaque com esse `deviceId`; se houver passeio em andamento, mostra "Nome — Cliente". Sem cadastro, mostra "Caiaque N".
 
 ## Decisões minhas (a confirmar)
-- Login no app FlutterFlow com Firebase Auth (e-mail/senha) para operadores; Angular lê com leitura permitida só para usuários autenticados, ou, se você preferir mapa sem login, leitura pública limitada a nome do caiaque e nome do cliente.
+- Login com Firebase Auth (e-mail/senha) apenas no app FlutterFlow, para operadores; criação pública de contas desativada.
+- **Revisado após o requisito de independência:** o mapa NÃO tem tela de login nem guarda de rota. O enriquecimento com nomes é opcional: desligado por padrão (sem configuração do Firebase no `environment`), com o código do Firebase carregado sob demanda. Quando ligado, um botão "Conectar ao cadastro" faz o login opcional; sem ele ou com erro, o mapa continua com "Caiaque N".
 - Início/fim do passeio gravados duas vezes (passeio e estado do caiaque) na mesma operação, para não ficar inconsistente.
 - Estados e telas em português.
 

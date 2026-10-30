@@ -15,7 +15,7 @@
 - O monorepo `rastreadorcaiaque` está arquivado: todo código novo e todo PR vai para os repositórios da organização `Rastreador-de-Caiaques`: `frontend-rastreador-de-caiaques` (Angular/PWA) e `modelagem-rastreador-de-caiaques` (docs e relatório de revisão).
 - Um branch e um PR por task, a partir da `main` do repositório, mensagens de commit em português, sem push direto na `main`.
 - Firestore: coleções `clientes`, `caiaques`, `passeios`; estados `disponivel | em_uso | manutencao` (caiaque) e `em_andamento | encerrado` (passeio); `caiaques.deviceId` numérico e único.
-- Login por Firebase Auth (e-mail/senha), no app e no mapa.
+- Independência: o rastreador funciona sem Firebase e sem login; o app FlutterFlow funciona sem o rastreador. Login Firebase (e-mail/senha) só no app FlutterFlow; no mapa é opcional e desligado por padrão.
 - Mapa nunca quebra se o Firestore falhar: cai para "Caiaque N".
 - Telas e textos em português. Sem alterar o backend nem o Postgres. Sem publicar nas lojas.
 - `gh` não está instalado: PRs são abertos pelo navegador ou após o usuário autorizar instalar o `gh`.
@@ -25,7 +25,8 @@
 - Dois caiaques cadastrados com o mesmo `deviceId`: o cadastro deve recusar o segundo.
 - Rádio envia `id` sem caiaque cadastrado: o mapa mostra "Caiaque N", sem erro.
 - Iniciar passeio com caiaque que acabou de ficar `em_uso` por outro operador: deve falhar sem criar passeio duplicado.
-- Firestore indisponível com usuário logado: o mapa mantém posições com nomes genéricos "Caiaque N".
+- Firebase não configurado no `environment` (padrão): o mapa abre normalmente, sem carregar código do Firebase e sem pedir login.
+- Firestore indisponível com usuário conectado: o mapa mantém posições com nomes genéricos "Caiaque N".
 - Cliente sem telefone ou nome vazio: o cadastro deve recusar nome vazio.
 
 ---
@@ -88,11 +89,11 @@
 - [ ] **Step 3:** `PasseiosAtivos`: lista de passeios `em_andamento` com botão "Encerrar", que numa transação preenche `fim`, estado `encerrado` e volta o caiaque para `disponivel`.
 - [ ] **Step 4:** Test Mode: iniciar e encerrar um passeio; estados do caiaque e do passeio corretos. Tentar iniciar passeio com caiaque `em_uso`: bloqueado.
 
-### Task 6: Angular — nomes do Firestore no mapa
+### Task 6: Angular — nomes do Firestore no mapa (opcional e independente)
 
 **Files:**
 - Modify: `src/app/services/caiaques.service.ts`, `src/app/app.config.ts`, `src/environments/environment*.ts`
-- Create: `src/app/services/cadastro.service.ts`, `src/app/services/cadastro.service.spec.ts`, `src/app/login/login.ts` (+ html/scss)
+- Create: `src/app/services/cadastro.service.ts`, `src/app/services/cadastro.service.spec.ts`, `src/app/conectar-cadastro/conectar-cadastro.ts` (+ html/scss, botão opcional)
 - Produces: `CadastroService.rotulo$(id: number): Observable<string>`; ex.: `"Canoa Azul — João"`, ou `"Caiaque 7"` sem cadastro ou em erro.
 
 **Interfaces:**
@@ -102,7 +103,7 @@
 - [ ] **Step 2:** Rodar `ng test --watch=false`. Expected: falha, serviço inexistente.
 - [ ] **Step 3:** Instalar `@angular/fire` e `firebase`; implementar `CadastroService` com a assinatura acima, apenas leitura, com `catchError` caindo para `"Caiaque N"`.
 - [ ] **Step 4:** Rodar os testes. Expected: PASS.
-- [ ] **Step 5:** Tela `Login` (e-mail/senha, Firebase Auth) e guarda de rota; o mapa inteiro exige login: deslogado, a guarda de rota leva para `Login`. Usar `CadastroService.rotulo$` nos rótulos de `mapa`, `painel-caiaque` e `painel-status`.
+- [ ] **Step 5:** Sem guarda de rota nem tela de login obrigatória: `CadastroService` só liga se `environment.cadastro` (config do Firebase) estiver preenchido, e importa `@angular/fire` sob demanda. Botão opcional "Conectar ao cadastro" (e-mail/senha). Usar `CadastroService.rotulo$` nos rótulos de `mapa`, `painel-caiaque` e `painel-status`; teste: com `environment.cadastro` vazio, `rotulo$(7)` emite `"Caiaque 7"` sem tocar no Firebase.
 - [ ] **Step 6:** Configuração do Firebase só em `environment*.ts` com a config pública do app web; commit, push e PR no repositório do frontend.
 
 ### Task 7: Angular — PWA instalável
